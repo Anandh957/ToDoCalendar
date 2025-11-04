@@ -1,0 +1,968 @@
+﻿@{
+    ViewBag.Title = "Calendar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+    <!-- CSS Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #eef2ff;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --success-color: #4ade80;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --light-color: #f8fafc;
+            --dark-color: #1e293b;
+            --gray-color: #64748b;
+            --border-radius: 12px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e6f0ff 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-color);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+    /* Centered Navigation */
+    .navbar {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 15px 0;
+    }
+
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--light-color);
+        margin: 0 auto;
+        transition: var(--transition);
+    }
+
+        .navbar-brand i {
+            margin-right: 12px;
+            font-size: 1.6rem;
+            color: var(--light-color);
+        }
+
+            .navbar-brand i:hover {
+                color: var(--secondary-color);
+                transform: translateY(-2px);
+        }
+
+        .navbar-brand:hover {
+            color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .task-sidebar {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            height: 70%;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .card-title {
+            color: var(--dark-color);
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+            .card-title:after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 50px;
+                height: 3px;
+                background: var(--primary-color);
+                border-radius: 3px;
+            }
+
+        /* Calendar Header */
+        #custom-calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        #currentMonthYear {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            background: var(--primary-light);
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.1);
+        }
+
+        .calendar-navigation button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 0 5px;
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+        }
+
+            .calendar-navigation button:hover {
+                background: var(--secondary-color);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 8px rgba(67, 97, 238, 0.3);
+            }
+
+        /* Calendar Grid */
+        #calendar-grid-headers {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 700;
+            color: var(--gray-color);
+            padding: 12px 0;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .calendar-day {
+            background: white;
+            border-radius: 10px;
+            min-height: 110px;
+            padding: 12px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--dark-color);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .calendar-day:hover {
+                background: var(--primary-light);
+                border-color: var(--primary-color);
+                transform: translateY(-3px);
+                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+            }
+
+            .calendar-day.today {
+                background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+                color: white;
+                border-color: var(--primary-color);
+                box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+            }
+
+                .calendar-day.today .day-number {
+                    color: white;
+                }
+
+            .calendar-day.selected {
+                background: var(--primary-light);
+                border: 2px solid var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            }
+
+            .calendar-day.inactive {
+                opacity: 0.4;
+                background: #f8fafc;
+                color: #cbd5e1;
+                cursor: not-allowed;
+            }
+
+                .calendar-day.inactive:hover {
+                    transform: none;
+                    box-shadow: none;
+                    background: #f8fafc;
+                    border-color: #e2e8f0;
+                }
+
+        .day-number {
+            font-size: 1.3rem;
+            line-height: 1;
+            margin-bottom: 5px;
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .event-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .event-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success-color);
+            border-radius: 50%;
+            display: block;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+            .event-dot.urgent {
+                background: var(--danger-color);
+            }
+
+            .event-dot.upcoming {
+                background: var(--warning-color);
+            }
+
+        /* Task Sidebar */
+        #selectedDateLabel {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        #taskDate, #DueDate {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+            #taskDate:focus, #DueDate:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            }
+
+        .datepicker-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .ui-datepicker-trigger {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background-color: transparent;
+            padding: 0;
+            z-index: 10;
+        }
+
+        #dateTodos {
+            flex-grow: 1;
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-top: 20px;
+            margin-bottom: 126px;
+        }
+
+            /* Custom Scrollbar */
+            #dateTodos::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            #dateTodos::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 10px;
+            }
+
+            #dateTodos::-webkit-scrollbar-thumb {
+                background: var(--primary-color);
+                border-radius: 10px;
+            }
+
+        .todo-list-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+            .todo-list-item:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            }
+
+            .todo-list-item.done {
+                background: #f0fdf4;
+                border-left-color: var(--success-color);
+                opacity: 0.9;
+            }
+
+                .todo-list-item.done strong {
+                    text-decoration: line-through;
+                    color: var(--gray-color);
+                }
+
+            .todo-list-item.overdue {
+                border-left-color: var(--danger-color);
+                background: #fef2f2;
+            }
+
+            .todo-list-item small {
+                color: var(--gray-color);
+                display: block;
+                margin-top: 4px;
+            }
+
+        .btn-group-sm .btn {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+            border-radius: 8px;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+        }
+
+            .btn-primary:hover {
+                background: var(--secondary-color);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 8px rgba(67, 97, 238, 0.3);
+            }
+
+        .btn-outline-info, .btn-outline-danger {
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+            .btn-outline-info:hover {
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+            }
+
+            .btn-outline-danger:hover {
+                background: var(--danger-color);
+                border-color: var(--danger-color);
+            }
+
+        /* Modal */
+        .modal-content {
+            border-radius: 15px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 20px 25px;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e2e8f0;
+            padding: 20px 25px;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            transition: var(--transition);
+        }
+
+            .form-control:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 992px) {
+            .calendar-day {
+                min-height: 90px;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .calendar-day {
+                min-height: 70px;
+                padding: 8px;
+            }
+
+            .day-number {
+                font-size: 1.1rem;
+                top: 8px;
+                right: 8px;
+            }
+
+            .event-indicator {
+                bottom: 8px;
+                left: 8px;
+            }
+
+            .event-dot {
+                width: 8px;
+                height: 8px;
+            }
+        }
+    </style>
+
+
+    <div class="container app-container mt-4">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="calendar-container">
+                    <div id="custom-calendar-header">
+                        <div class="calendar-navigation">
+                            <button id="prevMonth"><i class="fas fa-chevron-left me-2"></i> Prev</button>
+                        </div>
+                        <div id="currentMonthYear"></div>
+                        <div class="calendar-navigation">
+                            <button id="nextMonth">Next <i class="fas fa-chevron-right ms-2"></i></button>
+                        </div>
+                    </div>
+                    <div id="calendar-grid-headers">
+                        <div class="calendar-day-header">Sun</div>
+                        <div class="calendar-day-header">Mon</div>
+                        <div class="calendar-day-header">Tue</div>
+                        <div class="calendar-day-header">Wed</div>
+                        <div class="calendar-day-header">Thu</div>
+                        <div class="calendar-day-header">Fri</div>
+                        <div class="calendar-day-header">Sat</div>
+                    </div>
+                    <div id="calendar-grid">
+                        <!-- Calendar days will be rendered here by JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="task-sidebar">
+                    <h5 class="card-title">Tasks on <span id="selectedDateLabel">today</span></h5>
+                    <div class="datepicker-wrapper">
+                        <input type="text" id="taskDate" class="form-control" readonly />
+                    </div>
+                    <div id="dateTodos" class="sidebar"></div>
+                    <button class="btn btn-primary mb-2 w-100" data-bs-toggle="modal" data-bs-target="#todoModal" id="addBtn">
+                        <i class="fa-solid fa-plus me-2"></i> Add New Task
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="todoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add / Edit Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="todoForm">
+                        <input type="hidden" id="TodoId" />
+                        <div class="mb-3">
+                            <label for="Title" class="form-label">Title</label>
+                            <input id="Title" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="Description" class="form-label">Description</label>
+                            <textarea id="Description" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="DueDate" class="form-label">Due Date</label>
+                            <div class="datepicker-wrapper">
+                                <input id="DueDate" type="text" class="form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="IsDone">
+                            <label class="form-check-label" for="IsDone">Completed</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveTodo">Save Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section scripts {
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-bottom-right",
+            "timeOut": "2500"
+        };
+    </script>
+
+    <script>
+        // The JavaScript code remains exactly the same as in your original
+        $(function(){
+            // --- Helper Functions ---
+            function formatDateForDb(d) {
+                if (!d) return '';
+                let date;
+                if (typeof d === 'string') {
+                    const parts = d.split('/');
+                    if (parts.length === 3) {
+                        date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    } else if (!isNaN(new Date(d))) {
+                        date = new Date(d);
+                    } else {
+                        return '';
+                    }
+                } else if (d instanceof Date) {
+                    date = d;
+                } else {
+                    return '';
+                }
+
+                let year = date.getFullYear();
+                let month = (date.getMonth() + 1).toString().padStart(2, '0');
+                let day = date.getDate().toString().padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            function formatDateForDisplay(d) {
+                if (!d) return '';
+                let date;
+                if (typeof d === 'string') {
+                    const parts = d.split('-');
+                    if (parts.length === 3) {
+                        date = new Date(parts[0], parts[1] - 1, parts[2]);
+                    } else {
+                        const displayParts = d.split('/');
+                        if (displayParts.length === 3) {
+                            return d;
+                        }
+                        date = new Date(d);
+                    }
+                } else if (d instanceof Date) {
+                    date = d;
+                } else {
+                    return '';
+                }
+
+                if (isNaN(date.getTime())) return '';
+
+                let day = date.getDate().toString().padStart(2, '0');
+                let month = (date.getMonth() + 1).toString().padStart(2, '0');
+                let year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            }
+
+            const getTodayDateStringDbFormat = () => new Date().toISOString().substring(0, 10);
+
+            // --- Calendar Variables ---
+            let currentMonth = new Date().getMonth();
+            let currentYear = new Date().getFullYear();
+            let selectedCalendarDate = getTodayDateStringDbFormat();
+            let allEvents = [];
+
+            // --- DOM Elements ---
+            const $currentMonthYear = $('#currentMonthYear');
+            const $calendarGrid = $('#calendar-grid');
+            const $taskDateInput = $('#taskDate');
+            const $selectedDateLabel = $('#selectedDateLabel');
+            const $dateTodos = $('#dateTodos');
+            const $todoModal = $('#todoModal');
+            const $todoForm = $('#todoForm');
+            const $todoIdInput = $('#TodoId');
+            const $title = $('#Title');
+            const $description = $('#Description');
+            const $dueDate = $('#DueDate');
+            const $isDone = $('#IsDone');
+
+            // --- Initialize Datepickers ---
+            $taskDateInput.datepicker({
+                dateFormat: 'dd/mm/yy',
+                altFormat: 'yy-mm-dd',
+                showOn: "button",
+                buttonImage: "https://jqueryui.com/resources/demos/images/calendar.gif",
+                buttonImageOnly: true,
+                buttonText: "Select date",
+                onSelect: function(dateText, inst) {
+                    const selectedDateObj = new Date(inst.selectedYear, inst.selectedMonth, inst.selectedDay);
+                    selectedCalendarDate = formatDateForDb(selectedDateObj);
+                    currentMonth = selectedDateObj.getMonth();
+                    currentYear = selectedDateObj.getFullYear();
+                    fetchAndRenderCalendarEvents();
+                }
+            });
+
+            $dueDate.datepicker({
+                dateFormat: 'dd/mm/yy',
+                altFormat: 'yy-mm-dd',
+                showOn: "button",
+                buttonImage: "https://jqueryui.com/resources/demos/images/calendar.gif",
+                buttonImageOnly: true,
+                buttonText: "Select date"
+            });
+
+            // --- Calendar Rendering ---
+            function renderCalendar() {
+                $calendarGrid.empty();
+                $currentMonthYear.text(new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' }));
+
+                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+                const daysInMonth = lastDayOfMonth.getDate();
+                const startDay = firstDayOfMonth.getDay();
+
+                const todayString = getTodayDateStringDbFormat();
+
+                for (let i = 0; i < startDay; i++) {
+                    $calendarGrid.append('<div class="calendar-day inactive empty-day"></div>');
+                }
+
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const date = new Date(currentYear, currentMonth, i);
+                    const dateString = formatDateForDb(date);
+                    const eventsForDay = Array.isArray(allEvents) ? allEvents.filter(event => formatDateForDb(event.start) === dateString) : [];
+                    const hasEvent = eventsForDay.length > 0;
+
+                    let dayClasses = 'calendar-day';
+                    if (dateString === todayString) dayClasses += ' today';
+                    if (dateString === selectedCalendarDate) dayClasses += ' selected';
+
+                    const $dayDiv = $(`<div class="${dayClasses}" data-date="${dateString}">
+                                        <span class="day-number">${i}</span>
+                                        <div class="event-indicator"></div>
+                                      </div>`);
+
+                    if (hasEvent) {
+                        eventsForDay.forEach(() => {
+                            $dayDiv.find('.event-indicator').append('<span class="event-dot"></span>');
+                        });
+                    }
+                    $calendarGrid.append($dayDiv);
+                }
+
+                updateSidebarForSelectedDate(selectedCalendarDate);
+            }
+
+            function fetchAndRenderCalendarEvents() {
+                $.get('/Todo/GetEvents', function(res){
+                    if (res && res.success === false) {
+                        toastr.error(res.message || "Failed to load calendar events.");
+                        allEvents = [];
+                        renderCalendar();
+                        return;
+                    }
+                    allEvents = res || [];
+                    renderCalendar();
+                }).fail(function(){
+                    toastr.error("Failed to connect to server to load calendar events.");
+                    allEvents = [];
+                    renderCalendar();
+                });
+            }
+
+            // --- Sidebar / Task List Functions ---
+            function loadDate(dateDbFormat) {
+                if (!dateDbFormat) {
+                    $dateTodos.html('<p class="text-muted text-center mt-3">No date selected or invalid date.</p>');
+                    return;
+                }
+
+                $.get('/Todo/GetByDate', { date: dateDbFormat }, function(res){
+                    if (res && res.success === false) {
+                        toastr.error(res.message || "Failed to load tasks for the selected date.");
+                        $dateTodos.html('<p class="text-muted text-center mt-3">Error loading tasks.</p>');
+                        return;
+                    }
+
+                    const items = res || [];
+
+                    let html = '';
+                    if (items.length === 0) {
+                        html = '<p class="text-muted text-center mt-3">No tasks for this date</p>';
+                    } else {
+                        items.forEach(function(it){
+                            const itemId = it.todoId;
+
+                            const cls = it.isDone ? 'done' : '';
+                            html += `<div class="d-flex justify-content-between align-items-start mb-2 todo-list-item ${cls}" data-id="${itemId || ''}">
+                                        <div>
+                                            <strong>${it.title || 'Unnamed Task'}</strong><br/>
+                                            <small>${it.description || 'No description'}</small>
+                                        </div>
+                                        <div class="btn-group btn-group-sm ms-2" role="group">
+                                            <button class="btn btn-outline-info editBtn" title="Edit" ${itemId === undefined || itemId === null ? 'disabled' : ''}><i class="fa-solid fa-pen"></i></button>
+                                            <button class="btn btn-outline-danger delBtn" title="Delete" ${itemId === undefined || itemId === null ? 'disabled' : ''}><i class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                    </div>`;
+                        });
+                    }
+                    $dateTodos.html(html);
+                }).fail(function(){
+                    toastr.error("Failed to connect to server to load tasks for this date.");
+                    $dateTodos.html('<p class="text-muted text-center mt-3">Failed to load tasks.</p>');
+                });
+            }
+
+            function updateSidebarForSelectedDate(dateDbFormat) {
+                const displayDate = formatDateForDisplay(dateDbFormat);
+                $selectedDateLabel.text(displayDate);
+                $taskDateInput.datepicker('setDate', new Date(dateDbFormat));
+                loadDate(dateDbFormat);
+            }
+
+            // --- Event Handlers ---
+
+            $('#prevMonth').click(function() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                fetchAndRenderCalendarEvents();
+            });
+
+            $('#nextMonth').click(function() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                fetchAndRenderCalendarEvents();
+            });
+
+            $calendarGrid.on('click', '.calendar-day:not(.inactive)', function() {
+                $('.calendar-day').removeClass('selected');
+                $(this).addClass('selected');
+                selectedCalendarDate = $(this).data('date');
+                updateSidebarForSelectedDate(selectedCalendarDate);
+            });
+
+            $('#addBtn').click(function(){
+                $todoIdInput.val('');
+                $title.val('');
+                $description.val('');
+                $dueDate.datepicker('setDate', new Date(selectedCalendarDate));
+                $isDone.prop('checked', false);
+                $('.modal-title').text('Add Task');
+            });
+
+            $dateTodos.on('click', '.editBtn', function(){
+                const $item = $(this).closest('.todo-list-item');
+                const id = $item.data('id');
+
+                console.log('Editing task id:', id);
+
+                if (!id) {
+                    toastr.error('Task ID not found for editing.');
+                    return;
+                }
+
+                $.get('/Todo/GetById', { id: id }, function(res){
+                    console.log('Received task data for edit:', res);
+
+                    if (!res || res.success === false) {
+                        toastr.error(res?.message || 'Failed to load task details for editing.');
+                        return;
+                    }
+
+                    $todoIdInput.val(res.todoId || '');
+                    $title.val(res.title || '');
+                    $description.val(res.description || '');
+                    if (res.dueDate) {
+                         $dueDate.datepicker('setDate', new Date(res.dueDate));
+                    } else {
+                        $dueDate.val('');
+                    }
+                    $isDone.prop('checked', res.isDone || false);
+
+                    $('.modal-title').text('Edit Task');
+                    $todoModal.modal('show');
+                }).fail(function(xhr, status, error){
+                    console.error('Error fetching task for edit:', error);
+                    toastr.error('Failed to connect to server to load task details for editing.');
+                });
+            });
+
+            $('#saveTodo').click(function(){
+                const todoIdVal = $todoIdInput.val();
+                const dueDateForDb = $dueDate.datepicker('option', 'altFormat') ?
+                                     $.datepicker.formatDate($dueDate.datepicker('option', 'altFormat'), $dueDate.datepicker('getDate')) :
+                                     formatDateForDb($dueDate.datepicker('getDate'));
+
+                const dto = {
+                    TodoId: todoIdVal ? parseInt(todoIdVal, 10) : 0,
+                    Title: $title.val().trim(),
+                    Description: $description.val().trim(),
+                    DueDate: dueDateForDb,
+                    IsDone: $isDone.is(':checked')
+                };
+
+                console.log('Saving task:', dto);
+
+                if (!dto.Title) {
+                    toastr.error("Task title cannot be empty.");
+                    return;
+                }
+                if (!dto.DueDate || dto.DueDate === 'Invalid Date') {
+                    toastr.error("Please select a due date.");
+                    return;
+                }
+
+                $.post('/Todo/AddEdit', dto, function(res){
+                    console.log('Save response:', res);
+
+                    if(res.success){
+                        $todoModal.modal('hide');
+                        fetchAndRenderCalendarEvents();
+                        loadDate(selectedCalendarDate);
+                        toastr.success(res.message || 'Task saved successfully!');
+                    } else {
+                        toastr.error(res.message || 'An error occurred while saving the task.');
+                    }
+                }).fail(function(xhr, status, error){
+                    console.error('Error saving task:', error);
+                    toastr.error('Failed to connect to server to save task.');
+                });
+            });
+
+            $dateTodos.on('click', '.delBtn', function(){
+                const $item = $(this).closest('.todo-list-item');
+                const id = $item.data('id');
+
+                console.log('Deleting task id:', id);
+
+                if (!id || isNaN(parseInt(id, 10))) {
+                    Swal.fire('Error!', 'Invalid Task ID for deletion.', 'error');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post('/Todo/Delete', { id: id }, function(res){
+                            console.log('Delete response:', res);
+
+                            if(res.success){
+                                fetchAndRenderCalendarEvents();
+                                loadDate(selectedCalendarDate);
+                                Swal.fire('Deleted!', 'Your task has been deleted.', 'success');
+                            } else {
+                                Swal.fire('Error!', res.message || 'Failed to delete the task.', 'error');
+                            }
+                        }).fail(function(xhr, status, error){
+                            console.error('Error deleting task:', error);
+                            Swal.fire('Error!', 'Failed to delete the task due to a server error.', 'error');
+                        });
+                    }
+                });
+            });
+
+            // --- Initialization ---
+            selectedCalendarDate = getTodayDateStringDbFormat();
+            updateSidebarForSelectedDate(selectedCalendarDate);
+            fetchAndRenderCalendarEvents();
+        });
+    </script>
+ }
